@@ -1,5 +1,7 @@
 # DecisionTree
 
+https://github.com/Solarleaf/DecisionTree
+
 Run generator.cpp first to generate the shopper files
 
 Then DecisionTreeClassifier
