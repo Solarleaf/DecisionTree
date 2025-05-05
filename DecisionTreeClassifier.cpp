@@ -340,7 +340,7 @@ int main()
         {
             std::cout << "\n== Round " << k + 1 << " ==\n";
 
-            string confusionFile = folder + "/Tree_R" + std::to_string(k + 1) + "_ConfusionMatrix.txt";
+            string confusionFile = folder + "/Tree_R" + std::to_string(k + 1) + "_Metrics.txt";
             vector<vector<double>> X_eval;
             vector<int> y_eval;
             loadData(datasets[k], X_eval, y_eval);
