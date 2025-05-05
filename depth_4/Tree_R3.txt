@@ -1,0 +1,31 @@
+root: [X6 (VisitorType) <= 0]
+  if (left): [X5 (PageValue) <= 127.295]
+    if (left): [X3 (BounceRate) <= 0.00304312]
+      if (left): [X0 (Administrative) <= 1.5]
+        if (left): Predict: 0
+        else (right): Predict: 1
+      else (right): [X5 (PageValue) <= 78.6526]
+        if (left): Predict: 0
+        else (right): Predict: 0
+    else (right): [X3 (BounceRate) <= 0.529519]
+      if (left): [X1 (Product) <= 2]
+        if (left): Predict: 0
+        else (right): Predict: 1
+      else (right): [X0 (Administrative) <= 4]
+        if (left): Predict: 0
+        else (right): Predict: 1
+  else (right): [X5 (PageValue) <= 49.6135]
+    if (left): [X1 (Product) <= 6]
+      if (left): [X4 (ExitRate) <= 0.986549]
+        if (left): Predict: 0
+        else (right): Predict: 1
+      else (right): [X3 (BounceRate) <= 0.63255]
+        if (left): Predict: 0
+        else (right): Predict: 0
+    else (right): [X5 (PageValue) <= 110.221]
+      if (left): [X3 (BounceRate) <= 0.692374]
+        if (left): Predict: 1
+        else (right): Predict: 0
+      else (right): [X3 (BounceRate) <= 0.86431]
+        if (left): Predict: 1
+        else (right): Predict: 0

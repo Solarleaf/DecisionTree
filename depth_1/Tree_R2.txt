@@ -1,0 +1,3 @@
+root: [X6 (VisitorType) <= 0]
+  if (left): Predict: 0
+  else (right): Predict: 0
