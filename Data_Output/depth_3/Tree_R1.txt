@@ -1,0 +1,15 @@
+root: [x1 (Product) <= 4]
+  if (left): [x5 (PageValue) <= 77.6491]
+    if (left): [x2 (Information) <= 2]
+      if (left): Predict: 0
+      else (right): Predict: 1
+    else (right): [x3 (BounceRate) <= 0.182508]
+      if (left): Predict: 1
+      else (right): Predict: 1
+  else (right): [x1 (Product) <= 6]
+    if (left): [x3 (BounceRate) <= 0.792986]
+      if (left): Predict: 1
+      else (right): Predict: 1
+    else (right): [x4 (ExitRate) <= 0.997681]
+      if (left): Predict: 1
+      else (right): Predict: 0

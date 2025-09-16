@@ -1,0 +1,3 @@
+root: [x1 (Product) <= 4]
+  if (left): Predict: 1
+  else (right): Predict: 1

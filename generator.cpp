@@ -1,4 +1,5 @@
 // generator.cpp
+// filesystem requires C++17
 
 #include <iostream>
 #include <vector>
@@ -6,6 +7,7 @@
 #include <math.h>
 #include <algorithm>
 #include <fstream>
+#include <filesystem>
 
 // Shopping session
 struct Session
@@ -86,7 +88,7 @@ std::vector<Session> generateSessions(int n)
 void writeSessionsToCSV(const std::vector<Session> &data, const std::string &filename)
 {
     std::ofstream file(filename);
-    file << "Administrative,Product,Information,BounceRate,ExitRate,PageValue,VisitorType,Weekend,purchase\n";
+    file << "Administrative,Product,Information,BounceRate,ExitRate,PageValue,VisitorType,Weekend,Purchase\n";
     for (const auto &s : data)
     {
         file << s.administrative << "," << s.product << "," << s.information << "," << s.bounceRate << ","
@@ -98,10 +100,12 @@ int main()
 {
     std::vector<Session> trainingData = generateSessions(1000);
     std::vector<Session> actualData = generateSessions(300);
-    std::vector<Session> multiData = generateSessions(300);
 
-    writeSessionsToCSV(trainingData, "shoppers_train.csv");
-    writeSessionsToCSV(actualData, "shoppers_actual.csv");
-    writeSessionsToCSV(actualData, "shoppers_multi.csv");
+    std::string output = "Data_Input/";
+    std::filesystem::create_directories(output);
+    // Training Data
+    writeSessionsToCSV(trainingData, output + "shoppers_train.csv");
+    // Actual Results
+    writeSessionsToCSV(actualData, output + "shoppers_actual.csv");
     return 0;
 }

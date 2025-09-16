@@ -1,3 +1,5 @@
+// Classifier
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -8,9 +10,16 @@
 #include <algorithm>
 #include <limits>
 #include <memory>
+#include <filesystem>
 
 using std::string;
 using std::vector;
+
+struct EvalResult
+{
+    int TP{0}, TN{0}, FP{0}, FN{0};
+    double precision{0.0}, recall{0.0}, f1{0.0}, acc{0.0};
+};
 
 class TreeNode
 {
@@ -31,15 +40,15 @@ public:
     DecisionTreeClassifier(int depth, vector<string> names)
         : maxDepth(depth), featureNames(std::move(names)), actualMaxDepth(0) {}
 
-    void fit(const vector<vector<double>> &X, const vector<int> &y)
+    void fit(const vector<vector<double>> &x, const vector<int> &y)
     {
-        if (X.empty() || y.empty())
+        if (x.empty() || y.empty())
         {
             root = nullptr;
             return;
         }
         actualMaxDepth = 0;
-        root = buildTree(X, y, 0);
+        root = buildTree(x, y, 0);
     }
 
     int predict(const vector<double> &sample) const
@@ -57,67 +66,55 @@ public:
         return node->prediction;
     }
 
-    double score(const vector<vector<double>> &X, const vector<int> &y) const
+    double score(const vector<vector<double>> &x, const vector<int> &y) const
     {
         if (!root)
             return 0.0;
         int correct = 0;
-        for (size_t i = 0; i < X.size(); ++i)
-            if (predict(X[i]) == y[i])
+        for (size_t i = 0; i < x.size(); ++i)
+            if (predict(x[i]) == y[i])
                 ++correct;
-        return static_cast<double>(correct) / X.size();
+        return static_cast<double>(correct) / x.size();
     }
 
-    void evaluateDetailed(const vector<vector<double>> &X, const vector<int> &y, const string &outputFilename = "") const
+    void evaluateDetailed(const vector<vector<double>> &metrics, const vector<int> &labels, EvalResult &r) const
     {
-        if (!root || X.empty() || y.empty())
+        if (!root || metrics.empty() || labels.empty())
         {
-            std::ostringstream oss;
-            oss << "Confusion Matrix:\nTree not trained or data empty — evaluation skipped.\n";
-
-            std::cout << oss.str();
-            if (!outputFilename.empty())
-            {
-                std::ofstream out(outputFilename);
-                out << oss.str();
-            }
+            std::cout << "Confusion Matrix:\nTree not trained or data empty — evaluation skipped.\n";
             return;
         }
-        int TP = 0, TN = 0, FP = 0, FN = 0;
-        for (size_t i = 0; i < X.size(); ++i)
+        r = {};
+        for (size_t i = 0; i < metrics.size(); ++i)
         {
-            int pred = predict(X[i]);
-            if (pred == 1 && y[i] == 1)
-                TP++;
-            else if (pred == 0 && y[i] == 0)
-                TN++;
-            else if (pred == 1 && y[i] == 0)
-                FP++;
-            else if (pred == 0 && y[i] == 1)
-                FN++;
+            int pred = predict(metrics[i]);
+            if (pred == 1 && labels[i] == 1)
+                r.TP++;
+            else if (pred == 0 && labels[i] == 0)
+                r.TN++;
+            else if (pred == 1 && labels[i] == 0)
+                r.FP++;
+            else if (pred == 0 && labels[i] == 1)
+                r.FN++;
         }
 
-        double precision = TP + FP > 0 ? static_cast<double>(TP) / (TP + FP) : 0.0;
-        double recall = TP + FN > 0 ? static_cast<double>(TP) / (TP + FN) : 0.0;
-        double f1 = precision + recall > 0 ? 2 * (precision * recall) / (precision + recall) : 0.0;
-        double accuracy = static_cast<double>(TP + TN) / (TP + TN + FP + FN);
+        const int denomP = r.TP + r.FP;
+        const int denomR = r.TP + r.FN;
+        const int total = r.TP + r.TN + r.FP + r.FN;
 
-        std::ostringstream oss;
-        oss << "Confusion Matrix:\n";
-        oss << "TP: " << TP << "  FP: " << FP << "\n";
-        oss << "FN: " << FN << "  TN: " << TN << "\n";
-        oss << "Accuracy: " << accuracy * 100 << "%\n";
-        oss << "Precision: " << precision * 100 << "%\n";
-        oss << "Recall: " << recall * 100 << "%\n";
-        oss << "F1 Score: " << f1 * 100 << "%\n";
+        r.precision = denomP ? static_cast<double>(r.TP) / denomP : 0.0;
+        r.recall = denomR ? static_cast<double>(r.TP) / denomR : 0.0;
+        const double prSum = r.precision + r.recall;
+        r.f1 = prSum ? 2.0 * (r.precision * r.recall) / prSum : 0.0;
+        r.acc = total ? static_cast<double>(r.TP + r.TN) / total : 0.0;
 
-        std::cout << oss.str();
-
-        if (!outputFilename.empty())
-        {
-            std::ofstream out(outputFilename);
-            out << oss.str();
-        }
+        std::cout << "Confusion Matrix:\n"
+                  << "TP: " << r.TP << "  FP: " << r.FP << "\n"
+                  << "FN: " << r.FN << "  TN: " << r.TN << "\n"
+                  << "Accuracy: " << (r.acc * 100.0) << "%\n"
+                  << "Precision: " << (r.precision * 100.0) << "%\n"
+                  << "Recall: " << (r.recall * 100.0) << "%\n"
+                  << "F1 Score: " << (r.f1 * 100.0) << "%\n";
     }
 
     void saveTreeToFile(const string &filename) const
@@ -132,7 +129,7 @@ private:
     int actualMaxDepth;
     vector<string> featureNames;
 
-    std::unique_ptr<TreeNode> buildTree(const vector<vector<double>> &X, const vector<int> &y, int depth)
+    std::unique_ptr<TreeNode> buildTree(const vector<vector<double>> &x, const vector<int> &y, int depth)
     {
         actualMaxDepth = std::max(actualMaxDepth, depth);
         auto node = std::make_unique<TreeNode>();
@@ -153,19 +150,19 @@ private:
         double bestGini = std::numeric_limits<double>::max();
         vector<int> leftIdx, rightIdx;
 
-        for (size_t f = 0; f < X[0].size(); ++f)
+        for (size_t f = 0; f < x[0].size(); ++f)
         {
             vector<double> values;
-            for (const auto &row : X)
+            for (const auto &row : x)
                 values.push_back(row[f]);
             std::sort(values.begin(), values.end());
             for (size_t i = 1; i < values.size(); ++i)
             {
                 double threshold = (values[i - 1] + values[i]) / 2;
                 vector<int> left, right;
-                for (size_t j = 0; j < X.size(); ++j)
+                for (size_t j = 0; j < x.size(); ++j)
                 {
-                    if (X[j][f] <= threshold)
+                    if (x[j][f] <= threshold)
                         left.push_back(j);
                     else
                         right.push_back(j);
@@ -193,8 +190,8 @@ private:
 
         node->featureIndex = bestFeature;
         node->threshold = bestThreshold;
-        node->left = buildTree(extractRows(X, leftIdx), extractLabels(y, leftIdx), depth + 1);
-        node->right = buildTree(extractRows(X, rightIdx), extractLabels(y, rightIdx), depth + 1);
+        node->left = buildTree(extractRows(x, leftIdx), extractLabels(y, leftIdx), depth + 1);
+        node->right = buildTree(extractRows(x, rightIdx), extractLabels(y, rightIdx), depth + 1);
         return node;
     }
 
@@ -217,11 +214,11 @@ private:
         return (left.size() / total) * gL + (right.size() / total) * gR;
     }
 
-    vector<vector<double>> extractRows(const vector<vector<double>> &X, const vector<int> &idx)
+    vector<vector<double>> extractRows(const vector<vector<double>> &x, const vector<int> &idx)
     {
         vector<vector<double>> out;
         for (int i : idx)
-            out.push_back(X[i]);
+            out.push_back(x[i]);
         return out;
     }
 
@@ -233,12 +230,12 @@ private:
         return out;
     }
 
-    void printTreeToFileHelper(TreeNode *node, int indent, std::ostream &out, const string &label, const string &side = "") const
+    void printTreeToFileHelper(TreeNode *node, int indent, std::ostream &out, const string &labels, const string &side = "") const
     {
         if (!node)
             return;
         string padding(indent * 2, ' ');
-        out << padding << label;
+        out << padding << labels;
         if (!side.empty())
             out << " (" << side << ")";
         out << ": ";
@@ -248,7 +245,7 @@ private:
         }
         else
         {
-            out << "[X" << node->featureIndex << " (" << featureNames[node->featureIndex] << ") <= " << node->threshold << "]\n";
+            out << "[x" << node->featureIndex << " (" << featureNames[node->featureIndex] << ") <= " << node->threshold << "]\n";
             printTreeToFileHelper(node->left.get(), indent + 1, out, "if", "left");
             printTreeToFileHelper(node->right.get(), indent + 1, out, "else", "right");
         }
@@ -259,21 +256,26 @@ void loadData(const string &filename, vector<vector<double>> &features, vector<i
 {
     std::ifstream file(filename);
     string line;
+    //  Reads first line and ignores it. Deals with Header
     std::getline(file, line);
     while (std::getline(file, line))
     {
         std::stringstream ss(line);
         string item;
         vector<double> row;
+        // First six values are doubles
         for (int i = 0; i < 6; ++i)
         {
             std::getline(ss, item, ',');
             row.push_back(std::stod(item));
         }
+        // 7th value is a String. Convert to Double
         std::getline(ss, item, ',');
         row.push_back(item == "Returning_Visitor" ? 1.0 : 0.0);
+        // Next items is integer. Converts to Double automatically
         std::getline(ss, item, ',');
         row.push_back(std::stoi(item));
+        // Whether or not a purchase was made. Goes into labels.
         std::getline(ss, item, ',');
         labels.push_back(std::stoi(item));
         features.push_back(row);
@@ -297,91 +299,66 @@ void copyFile(const string &from, const string &to)
     dst << src.rdbuf();
 }
 
-void evaluateTreeOnData(const DecisionTreeClassifier &clf, const string &dataFile, const string &reportFile = "")
+void init(vector<string> &datasets, vector<string> &featureNames, string &output)
 {
-    vector<vector<double>> X;
-    vector<int> y;
-    loadData(dataFile, X, y);
-    clf.evaluateDetailed(X, y, reportFile);
+    // Input files
+    datasets = {
+        "Data_Input/shoppers_train.csv",
+        "Data_Input/shoppers_actual.csv"};
+    featureNames = {
+        "Administrative", "Product", "Information",
+        "BounceRate", "ExitRate", "PageValue",
+        "VisitorType", "Weekend"};
+    // Output file
+    output = "Data_Output/";
+    std::filesystem::create_directories(output);
+    return;
 }
 
 int main()
 {
-    vector<string> datasets = {
-        "shoppers_train.csv",
-        "shoppers_actual.csv",
-        "shoppers_multi.csv"};
-
-    vector<string> featureNames = {
-        "Administrative", "Product", "Information",
-        "BounceRate", "ExitRate", "PageValue",
-        "VisitorType", "Weekend"};
+    vector<string> datasets;
+    vector<string> featureNames;
+    string output;
+    EvalResult evalResult;
+    // Sets up names for datasets, feature names, etc
+    init(datasets, featureNames, output);
 
     std::ofstream summary("depth_summary.csv");
     summary << "Depth,Round,Accuracy,Precision,Recall,F1\n";
 
     for (int depth = 1; depth <= 15; ++depth)
     {
-        std::cout << "\n==== DEPTH: " << depth << " ====\n"
-                  << std::endl;
+        std::cout << "\nDEPTH: " << depth << "\n\n";
 
-        string folder = "depth_" + std::to_string(depth);
-        system(("mkdir -p " + folder).c_str());
-
-        string cumulativeFile = folder + "/shopper_all_data.csv";
-        std::ofstream init(cumulativeFile);
-        init << "Administrative,Product,Information,BounceRate,ExitRate,PageValue,VisitorType,Weekend,purchase\n";
+        string folder = output + "depth_" + std::to_string(depth);
+        std::filesystem::create_directories(folder);
 
         DecisionTreeClassifier masterTree(depth, featureNames);
 
-        int reTest = 0;
-
         for (size_t k = 0; k < datasets.size(); ++k)
         {
-            std::cout << "\n== Round " << k + 1 << " ==\n";
+            string metricsFile = folder + "/Tree_R" + std::to_string(k + 1) + "_Metrics.txt";
+            vector<vector<double>> metrics;
+            vector<int> labels;
+            loadData(datasets[k], metrics, labels);
 
-            string confusionFile = folder + "/Tree_R" + std::to_string(k + 1) + "_Metrics.txt";
-            vector<vector<double>> X_eval;
-            vector<int> y_eval;
-            loadData(datasets[k], X_eval, y_eval);
-
-            masterTree.evaluateDetailed(X_eval, y_eval, confusionFile); // Print and save
+            if (k == 0)
+            {
+                masterTree.fit(metrics, labels);
+            }
+            masterTree.evaluateDetailed(metrics, labels, evalResult); // Print
 
             // Re-parse metrics from file for CSV summary
-            std::ifstream confIn(confusionFile);
+            std::ifstream confIn(metricsFile);
             string line;
             double acc = 0, prec = 0, rec = 0, f1 = 0;
-            while (std::getline(confIn, line))
-            {
-                if (line.find("Accuracy:") != std::string::npos)
-                    acc = std::stod(line.substr(line.find(":") + 1));
-                else if (line.find("Precision:") != std::string::npos)
-                    prec = std::stod(line.substr(line.find(":") + 1));
-                else if (line.find("Recall:") != std::string::npos)
-                    rec = std::stod(line.substr(line.find(":") + 1));
-                else if (line.find("F1 Score:") != std::string::npos)
-                    f1 = std::stod(line.substr(line.find(":") + 1));
-            }
-            summary << depth << "," << k + 1 << "," << acc << "," << prec << "," << rec << "," << f1 << "\n";
-            if (reTest != 1) // To keep it from double training on itself
-            {
-                appendDataToFile(datasets[k], cumulativeFile);
-            }
-
-            vector<vector<double>> X_cumulative;
-            vector<int> y_cumulative;
-            loadData(cumulativeFile, X_cumulative, y_cumulative);
-            masterTree.fit(X_cumulative, y_cumulative);
+            summary << depth << "," << k + 1 << "," << evalResult.acc << ",";
+            summary << evalResult.precision << "," << evalResult.recall << "," << evalResult.f1 << "\n";
 
             masterTree.saveTreeToFile(folder + "/Tree_Master.txt");
             string treeSnapshot = folder + "/Tree_R" + std::to_string(k + 1) + ".txt";
             copyFile(folder + "/Tree_Master.txt", treeSnapshot);
-
-            if (reTest == 0)
-            {
-                reTest = 1;
-                k = -1;
-            }
         }
     }
 

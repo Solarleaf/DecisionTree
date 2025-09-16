@@ -1,7 +1,0 @@
-Confusion Matrix:
-TP: 280  FP: 5
-FN: 0  TN: 715
-Accuracy: 99.5%
-Precision: 98.2456%
-Recall: 100%
-F1 Score: 99.115%
