@@ -8,6 +8,7 @@ df = df[df["Accuracy"] > 0]
 
 metrics = ['Accuracy', 'Precision', 'Recall', 'F1']
 round_colors = {1: 'blue', 2: 'green'}
+round_labels = {1: 'Training Data', 2: 'Sample'}
 metric_markers = {'Accuracy': 'o', 'Precision': 's', 'Recall': '^', 'F1': 'D'}
 
 plt.figure(figsize=(14, 8))
@@ -20,9 +21,9 @@ for i, metric in enumerate(metrics):
 
         plt.plot(depths, values, color=round_colors[rnd], alpha=0.4)
         plt.scatter(depths, values, color=round_colors[rnd], marker=metric_markers[metric],
-                    label=f"{metric} (Round {rnd})", s=60)
+                    label=f"{metric} ({round_labels[rnd]})", s=60)
 
-plt.title("Decision Tree Metrics by Depth and Round")
+plt.title("Decision Tree Metrics by Depth and Metric")
 plt.xlabel("Tree Depth")
 plt.ylabel("Metric (%)")
 plt.grid(True, linestyle='--', alpha=0.5)

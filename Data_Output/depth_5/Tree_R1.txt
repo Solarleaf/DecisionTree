@@ -1,51 +1,51 @@
-root: [x1 (Product) <= 4]
-  if (left): [x5 (PageValue) <= 77.6491]
-    if (left): [x2 (Information) <= 2]
-      if (left): [x3 (BounceRate) <= 0.237521]
-        if (left): [x0 (Administrative) <= 1]
+root: [x5 (PageValue) <= 106.435]
+  if (left): [x6 (VisitorType) <= 0]
+    if (left): [x3 (BounceRate) <= 0.004532]
+      if (left): Predict: 1
+      else (right): [x4 (ExitRate) <= 0.0152665]
+        if (left): [x2 (Information) <= 3.5]
           if (left): Predict: 0
           else (right): Predict: 1
-        else (right): [x5 (PageValue) <= 53.0821]
+        else (right): [x5 (PageValue) <= 37.9193]
+          if (left): Predict: 0
+          else (right): Predict: 0
+    else (right): [x3 (BounceRate) <= 0.58202]
+      if (left): [x4 (ExitRate) <= 0.0732819]
+        if (left): [x1 (Product) <= 6.5]
           if (left): Predict: 0
           else (right): Predict: 1
-      else (right): [x3 (BounceRate) <= 0.647168]
-        if (left): [x4 (ExitRate) <= 0.951997]
+        else (right): [x5 (PageValue) <= 38.2288]
+          if (left): Predict: 0
+          else (right): Predict: 0
+      else (right): [x4 (ExitRate) <= 0.342496]
+        if (left): [x3 (BounceRate) <= 0.86675]
+          if (left): Predict: 0
+          else (right): Predict: 0
+        else (right): [x2 (Information) <= 3]
+          if (left): Predict: 0
+          else (right): Predict: 0
+  else (right): [x6 (VisitorType) <= 0]
+    if (left): [x3 (BounceRate) <= 0.703949]
+      if (left): [x2 (Information) <= 6.5]
+        if (left): [x5 (PageValue) <= 140.591]
+          if (left): Predict: 0
+          else (right): Predict: 1
+        else (right): [x7 (Weekend) <= 0]
           if (left): Predict: 1
           else (right): Predict: 0
-        else (right): [x7 (Weekend) <= 0]
-          if (left): Predict: 0
-          else (right): Predict: 1
-    else (right): [x3 (BounceRate) <= 0.182508]
-      if (left): [x5 (PageValue) <= 136.419]
+      else (right): [x4 (ExitRate) <= 0.905176]
         if (left): Predict: 0
         else (right): Predict: 1
-      else (right): [x3 (BounceRate) <= 0.942097]
-        if (left): [x5 (PageValue) <= 163.635]
+    else (right): [x4 (ExitRate) <= 0.811176]
+      if (left): [x5 (PageValue) <= 147.948]
+        if (left): [x1 (Product) <= 13]
           if (left): Predict: 1
           else (right): Predict: 1
-        else (right): [x1 (Product) <= 2]
+        else (right): Predict: 1
+      else (right): [x1 (Product) <= 8]
+        if (left): [x5 (PageValue) <= 109.115]
           if (left): Predict: 1
           else (right): Predict: 0
-  else (right): [x1 (Product) <= 6]
-    if (left): [x3 (BounceRate) <= 0.792986]
-      if (left): [x3 (BounceRate) <= 0.196661]
-        if (left): [x3 (BounceRate) <= 0.142596]
-          if (left): Predict: 1
-          else (right): Predict: 0
-        else (right): [x2 (Information) <= 2]
-          if (left): Predict: 1
-          else (right): Predict: 1
-      else (right): [x3 (BounceRate) <= 0.809926]
-        if (left): Predict: 0
-        else (right): [x4 (ExitRate) <= 0.124474]
+        else (right): [x5 (PageValue) <= 142.14]
           if (left): Predict: 0
           else (right): Predict: 1
-    else (right): [x4 (ExitRate) <= 0.997681]
-      if (left): [x4 (ExitRate) <= 0.342864]
-        if (left): [x4 (ExitRate) <= 0.34084]
-          if (left): Predict: 1
-          else (right): Predict: 0
-        else (right): [x3 (BounceRate) <= 0.8852]
-          if (left): Predict: 1
-          else (right): Predict: 1
-      else (right): Predict: 0

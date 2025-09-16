@@ -1,7 +1,7 @@
-root: [x1 (Product) <= 4]
-  if (left): [x5 (PageValue) <= 77.6491]
-    if (left): Predict: 1
-    else (right): Predict: 1
-  else (right): [x1 (Product) <= 6]
-    if (left): Predict: 1
+root: [x5 (PageValue) <= 106.435]
+  if (left): [x6 (VisitorType) <= 0]
+    if (left): Predict: 0
+    else (right): Predict: 0
+  else (right): [x6 (VisitorType) <= 0]
+    if (left): Predict: 0
     else (right): Predict: 1
