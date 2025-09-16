@@ -35,5 +35,7 @@ Overall the results of the project were rather satisfactory and surprising where
 ## References
 
 [1] scikit-learn, “1.10. Decision Trees — scikit-learn 0.22 documentation,” Scikit-learn.org. https://scikit-learn.org/stable/modules/tree.html
+
 [2] “Online Shoppers Purchasing Intention Dataset,” www.kaggle.com. https://www.kaggle.com/datasets/imakash3011/online-shoppers-purchasing-intention-dataset. USed for conceptual information
+
 [3] “ID3, C4.5, CART and Pruning,” Machine Learning Blog, Jul. 04, 2020. https://bitmask93.github.io/ml-blog/ID3-C4-5-CART-and-Pruning/
